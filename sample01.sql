@@ -42,11 +42,11 @@ INSERT INTO user_tbl VALUES
 ('KKH','김경호',1971,'전남','019','33333333',177,'2007-07-07'),
 ('LJB','임재범',1963,'서울','016','66666666',182,'2009-09-09'),
 ('LSG','이승기',1987,'서울','011','11111111',182,'2008-08-08'),
-('SSK','성시경',1979,'서울','','',186,'2013-12-12'),
-('YJS','윤종신',1969,'경남','','',170,'2005-05-05');
+('SSK','성시경',1979,'서울',NULL,NULL,186,'2013-12-12'),
+('YJS','윤종신',1969,'경남',NULL,NULL,170,'2005-05-05');
 
 -- buy_tbl 테이블 데이터 삽입
-INSERT INTO buy_tbl VALUES (1,'KBS','운동화','',30,2);
+INSERT INTO buy_tbl VALUES (1,'KBS','운동화',NULL,30,2);
 INSERT INTO buy_tbl VALUES (2,'KBS','노트북','전자',1000,1);
 INSERT INTO buy_tbl VALUES (3,'JYP','모니터','전자',200,1);
 INSERT INTO buy_tbl VALUES (4,'BBK','모니터','전자',200,5);
@@ -55,9 +55,9 @@ INSERT INTO buy_tbl VALUES (6,'BBK','메모리','전자',80,10);
 INSERT INTO buy_tbl VALUES (7,'SSK','책','서적',15,5);
 INSERT INTO buy_tbl VALUES (8,'EJW','책','서적',15,2);
 INSERT INTO buy_tbl VALUES (9,'EJW','청바지','의류',50,1);
-INSERT INTO buy_tbl VALUES (10,'BBK','운동화','',30,2);
+INSERT INTO buy_tbl VALUES (10,'BBK','운동화',NULL,30,2);
 INSERT INTO buy_tbl VALUES (11,'EJW','책','서적',15,1);
-INSERT INTO buy_tbl VALUES (12,'BBK','운동화','',30,2);
+INSERT INTO buy_tbl VALUES (12,'BBK','운동화',NULL,30,2);
 
 -- test_db 에 있는 테이블 목록 확인
 SHOW TABLES;
