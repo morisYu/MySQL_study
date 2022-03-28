@@ -304,3 +304,69 @@ SELECT VERSION();
 -- SLEEP(쿼리의 실행을 잠깐 멈춘다)
 SELECT SLEEP(3);
 SELECT '5 초 후에 이게 보여요';
+
+/* 피벗의 구현 */
+-- 피벗은 한 열에 포함된 여러 값을 출력하고, 이를 여러 열로 변환하여 테이블 반환 식을 회전하고 필요하면 집계까지 수행하는 것
+
+USE sample01_db;
+CREATE TABLE pivotTest (
+	uName CHAR(3),
+    season CHAR(2),
+    amount INT
+);
+
+INSERT INTO pivotTest VALUES
+	('김범수', '겨울', 10), ('윤종신', '여름', 15), ('김범수', '가을', 25), ('김범수', '봄', 3),
+    ('김범수', '봄', 37), ('윤종신', '겨울', 40), ('김범수', '여름', 14), ('김범수', '겨울', 22),
+    ('윤종신', '여름', 64);
+SELECT * FROM pivotTest;
+
+SELECT uName,
+	SUM(IF(season='봄', amount, 0)) AS '봄',
+    SUM(IF(season='여름', amount, 0)) AS '여름',
+    SUM(IF(season='가을', amount, 0)) AS '가을',
+    SUM(IF(season='겨울', amount, 0)) AS '겨울',
+    SUM(amount) AS '합계' FROM pivotTest GROUP BY uName;
+
+/* JSON 데이터 */
+-- 속성과 키 값으로 쌍을 이루며 구성됨.
+
+-- JSON 내장함수로 user_tbl에서 키가 180 이상인 사람의 이름과 키를 JSON으로 변환
+USE sample01_db;
+SELECT name, height FROM user_tbl;
+SELECT JSON_OBJECT('name', name, 'height', height) AS 'JSON 값'
+	FROM user_tbl WHERE height >= 180;
+    
+-- JSON 관련 함수
+
+-- @json 변수에 JSON 데이터를 우선 대입하면서 테이블의 이름은 usertbl로 지정
+SET @json = '{"usertbl" : 
+	[
+		{"name":"임재범", "height":182},
+        {"name" : "이승기", "height" : 182},
+        {"name" : "성시경", "height" : 186}
+	]
+}';
+
+-- 문자열이 JSON 형식을 만족하면 1, 그렇지 않으면 0을 반환.
+SELECT JSON_VALID(@json) AS JSON_VALID;
+
+-- 세 번째 파라미터에 주어진 문자열의 위치를 반환.
+-- 두 번째 파라미터는 one, all 만 가능(처음 매치되는 하나만 반환할지 매치되는 모든 것을 반환할지 결정)
+SELECT JSON_SEARCH(@json, 'one', '임재범') AS JSON_SEARCH;
+
+-- 지정된 위치값을 추출
+SELECT JSON_EXTRACT(@json, '$.usertbl[2].name') AS JSON_EXTRACT;
+
+-- 새로운 값을 추가
+SELECT JSON_INSERT(@json, '$.usertbl[0].mDate', '2009-09-09') AS JSON_INSERT;
+
+-- 값을 변경
+SELECT JSON_REPLACE(@json, '$.usertbl[0].name', '홍길동') AS JSON_REPLACE;
+
+-- 지정된 항목 삭제
+SELECT JSON_REMOVE(@json, '$.usertbl[0]') AS JSON_REMOVE;
+
+
+
+
