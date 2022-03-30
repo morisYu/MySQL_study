@@ -33,7 +33,7 @@ SHOW VARIABLES LIKE 'secure_file_priv';
     3. dir 로 파일목록 확인 후 NOTEPAD my.ini 실행해서 메모장 파일을 실행
     4. ctrl+f 로 max_allowed_packet 검색해서 값을 1024M 로 변경 후 저장
     5. ctrl+f 로 secure-file-priv 검색해서 파일 경로 추가 (secure-file-priv="C:/SQL/Movies")
-    6. MySQL을 중지했다가 재시작(NET STOP MySQL  >  NET START MySQL) */
+    6. MySQL(또는 MySQL80)을 중지했다가 재시작(NET STOP MySQL(또는 MySQL80)  >  NET START MySQL(또는 MySQL80)) */
 
 -- 위의 두 작업이 완료된 후(CMD에서 진행) 다시 대용량 파일 입력
 USE moviedb;
