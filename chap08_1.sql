@@ -347,3 +347,179 @@ INSERT INTO compresstbl
 
 -- 테이블 상태 확인(압축된 테이블이 Avg_row_length 와 Data_length 가 훤씬 작은 것을 확인 가능)
 SHOW TABLE STATUS FROM compressdb;
+
+
+
+/* 8.1.6 테이블 수정 */
+/* ------------------------------------------------------------------------ */
+
+/* 실습5. 테이블의 제약조건 및 수정 방법 */
+
+CREATE DATABASE IF NOT EXISTS tabledb;
+USE tabledb;
+DROP TABLE IF EXISTS buytbl, usertbl;
+
+-- 테이블 생성 
+CREATE TABLE usertbl (
+	userID CHAR(8),
+    name VARCHAR(10),
+    birthYear INT,
+    addr CHAR(2),
+    mobile1 CHAR(3),
+    mobile2 CHAR(8),
+    height SMALLINT,
+    mDate DATE
+);
+
+CREATE TABLE buytbl (
+	num INT AUTO_INCREMENT PRIMARY KEY,
+    userid CHAR(8),
+    prodName CHAR(6),
+    groupName CHAR(4),
+    price INT,
+    amount SMALLINT
+);
+
+-- 데이터 입력
+INSERT INTO usertbl VALUES('LSG', '이승기', 1987, '서울', '011', '11111111', 182, '2008-8-8');
+INSERT INTO usertbl VALUES('KBS', '김범수', NULL, '경남', '011', '22222222', 173, '2012-4-4');
+INSERT INTO usertbl VALUES('KKH', '김경호', 1871, '전남', '019', '33333333', 177, '2007-7-7');
+INSERT INTO usertbl VALUES('JYP', '조용필', 1950, '경기', '011', '44444444', 166, '2009-4-4');
+
+INSERT INTO buytbl VALUES (NULL, 'KBS', '운동화', NULL, 30, 2), (NULL, 'KBS', '노트북', '전자', 1000, 1),
+                          (NULL, 'JYP', '모니터', '전자', 200, 1), (NULL, 'BBK', '모니터', '전자', 200, 5);
+                    
+-- 제약조건 생성
+ALTER TABLE usertbl
+	ADD CONSTRAINT PK_usertbl_userID
+    PRIMARY KEY (userID);
+DESC usertbl;
+
+-- 외래키 설정
+-- 참조해야 할 'BBK' 가 없기 때문에 오류가 발생함
+ALTER TABLE buytbl
+	ADD CONSTRAINT FK_usertbl_buytbl
+    FOREIGN KEY (userid)
+    REFERENCES usertbl (userID);
+
+-- 문제가 되는 'BBK' 행 삭제 후 다시 외래키 설정
+DELETE FROM buytbl WHERE userid = 'BBK';
+ALTER TABLE buytbl
+	ADD CONSTRAINT FK_usertbl_buytbl
+	FOREIGN KEY (userid)
+    REFERENCES usertbl (userID);
+
+-- 'BBK' 데이터 다시 입력
+-- 외래키가 설정된 상태이기 때문에 참조하는 usertbl에 'BBK'가 있어야 buytbl에 입력 가능
+INSERT INTO buytbl VALUES (NULL, 'BBK', '모니터', '전자', 200, 5);
+
+-- usertbl에 먼저 입력 후 buytbl에 입력해도 되지만, 대량의 buytbl 데이터를 먼저 입력해야 하는 경우에는
+-- 외래키 제약조건을 비활성화 시키고, 데이터를 입력 후 다시 외래키 제약조건을 활성화 시킬 수도 있다.
+SET foreign_key_checks = 0;
+INSERT INTO buytbl VALUES (NULL, 'BBK', '모니터', '전자', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'KBS', '청바지', '의류', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'BBK', '메모리', '전자', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'SSK', '책', '서적', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'EJW', '책', '서적', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'EJW', '청바지', '의류', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'BBK', '운동화', NULL, 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'EJW', '책', '서적', 200, 5);
+INSERT INTO buytbl VALUES (NULL, 'BBK', '운동화', NULL, 200, 5);
+SET foreign_key_checks = 1;
+SELECT * FROM buytbl;
+
+-- CHECK 제약조건을 설정
+-- '김범수' 는 생년이 NULL 로 되어있고, '김경호' 는 생년이 범위를 벗어나기 때문에 오류가 발생한다.
+ALTER TABLE usertbl
+	ADD CONSTRAINT CK_birthYear
+    CHECK ( (birthYear >= 1900 AND birthYear <= 2023) AND (birthYear IS NOT NULL));
+
+-- '김범수' 와 '김경호' 의 생년을 수정 후 CHECK 제약조건을 다시 설정
+UPDATE usertbl SET birthYear = 1979 WHERE userID = 'KBS';
+UPDATE usertbl SET birthYear = 1971 WHERE userID = 'KKH';
+ALTER TABLE usertbl
+	ADD CONSTRAINT CK_birthYear
+    CHECK ( (birthYear >= 1900 AND birthYear <= 2023) AND (birthYear IS NOT NULL));
+
+-- 나머지 usertbl의 정상적인 데이터를 입력
+INSERT INTO usertbl VALUES ('SSK', '성시경', 1979, '서울', NULL, NULL, 186, '2013-12-12');
+INSERT INTO usertbl VALUES ('LJB', '임재범', 1963, '서울', '016', '66666666', 182, '2009-9-9');
+INSERT INTO usertbl VALUES ('YJS', '윤종신', 1969, '경남', NULL, NULL, 170, '2005-5-5');
+INSERT INTO usertbl VALUES ('EJW', '은진원', 1972, '경북', '011', '88888888', 174, '2014-3-3');
+INSERT INTO usertbl VALUES ('JKW', '조관우', 1965, '경기', '018', '99999999', 172, '2010-10-10');
+INSERT INTO usertbl VALUES ('BBK', '바비킴', 1973, '서울', '010', '00000000', 176, '2013-5-5');
+
+SELECT * FROM usertbl;
+SELECT * FROM buytbl;
+
+-- usertbl 에서 'BBK' 를 'VVK' 로 변경
+-- 이미 buytbl 에서 'BBK' 로 구매내역이 있기 때문에 바뀌지 않는다.
+-- 따라서 잠깐 제약조건을 비활성화 후 데이터를 변경하고 다시 제약조건을 활성화하면 된다.
+SET foreign_key_checks = 0;
+UPDATE usertbl SET userID = 'VVK' WHERE userID = 'BBK';
+SET foreign_key_checks = 1;
+
+-- buytbl 과 usertbl 을 조인
+SELECT B.userid, U.name, B.prodName, U.addr, CONCAT(U.mobile1, U.mobile2) AS '연락처'
+	FROM buytbl B
+		INNER JOIN usertbl U
+			ON B.userid = U.userID;
+
+-- 구매 내역을 카운트
+-- 위에서 조인한 결과와 카운트가 맞지 않는다.
+SELECT COUNT(*) FROM buytbl;
+
+-- 외부조인으로 구매 테이블의 내용을 모두 출력
+-- 위에서 나온 결과와 다르게 'BBK'가 출력된다.
+-- 'BBK' 는 'VVK' 로 수정했기 때문에 name, addr, 연락처가 없다.
+SELECT B.userid, U.name, B.prodName, U.addr, CONCAT(U.mobile1, U.mobile2) AS '연락처'
+	FROM buytbl B
+		LEFT OUTER JOIN usertbl U
+			ON B.userid = U.userID
+	ORDER BY B.userid;
+
+-- '바비킴'의 아이디를 원래대로 복구
+-- 외래키 설정을 비활성화해서 데이터를 수정할 경우 위와 같은 사항을 주의해야 한다.
+SET foreign_key_checks = 0;
+UPDATE usertbl SET userID = 'BBK' WHERE userID = 'VVK';
+SET foreign_key_checks = 1;
+
+-- usertbl의 userID 가 변경될 경우 buytbl에서 userid가 자동으로 변경되도록 외래키 제약조건 새로 설정
+ALTER TABLE buytbl
+	DROP FOREIGN KEY FK_usertbl_buytbl;
+ALTER TABLE buytbl
+	ADD CONSTRAINT FK_usertbl_buytbl
+		FOREIGN KEY (userid)
+        REFERENCES usertbl (userID)
+		ON UPDATE CASCADE;
+
+-- usertbl의 '바비킴' 의 ID 를 다시 변경하고, buytbl에도 바뀌었는지 확인
+UPDATE usertbl SET userID = 'VVK' WHERE userID = 'BBK';
+SELECT B.userid, U.name, B.prodName, U.addr, CONCAT(U.mobile1, U.mobile2) AS '연락처'
+	FROM buytbl B
+		INNER JOIN usertbl U
+			ON B.userid = U.userID
+	ORDER BY B.userid;
+
+-- '바비킴' 이 usertbl에서 삭제되면 buytbl에서도 삭제되는지 확인
+-- 외래 키 제약조건 때문에 삭제가 되지 않음
+DELETE FROM usertbl WHERE userid = 'VVK';
+
+-- usertbl의 user의 기록이 삭제된 경우 buytbl 에서도 관련된 데이터도 삭제되도록 설정
+ALTER TABLE buytbl
+	DROP FOREIGN KEY FK_usertbl_buytbl;
+ALTER TABLE buytbl
+	ADD CONSTRAINT FK_usertbl_buytbl
+		FOREIGN KEY (userid)
+		REFERENCES usertbl (userID)
+		ON UPDATE CASCADE
+        ON DELETE CASCADE;
+
+-- 다시 usertbl 에서 '바비킴' 을 삭제 후 buytbl 에도 데이터가 삭제 되었는지 확인
+DELETE FROM usertbl WHERE userID = 'VVK';
+SELECT * FROM buytbl ORDER BY userid DESC;
+
+-- 출생년도 열을 삭제
+-- MySQL은 제약조건을 무시하고 전부 삭제, 다른 DBMS는 CHECK 제약조건이 설정된 열은 삭제되지 않음.
+ALTER TABLE usertbl
+	DROP COLUMN birthYear;
