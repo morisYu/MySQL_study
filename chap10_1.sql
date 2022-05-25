@@ -180,7 +180,7 @@ SELECT parameter_mode, parameter_name, dtd_identifier
     WHERE specific_name = 'userProc3';
 
 -- 테이블 이름을 파라미터로 전달
--- 테이블 이름을 직접 매개변수로 사용할 수 없음
+-- 테이블 이름을 직접 매개변수로 사용할 수 없음(오류 발생)
 DROP PROCEDURE IF EXISTS nameProc;
 DELIMITER $$
 CREATE PROCEDURE nameProc(
@@ -223,12 +223,6 @@ BEGIN
 END $$
 DELIMITER ;
 CALL delivProc('LJB');
-
-
-
-
-
-
 
 
 
